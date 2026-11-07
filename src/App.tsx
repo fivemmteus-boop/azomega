@@ -14,37 +14,187 @@ import {
 
 const HIERARCHY_ORDER = ['ADM DA PASTA', 'AUXILIAR', 'LÍDER', 'SUB', 'AZO', 'AZO-T'];
 
+const INITIAL_DB = {
+  members: [
+    {
+      id: 'm-1',
+      full_name: 'Administrador Principal',
+      gta_name: 'Admin OMEGA',
+      game_id: '001',
+      email: 'adminpastaomega@gmail.com',
+      password_hash: 'admin0456',
+      discord: 'admin_azo#0001',
+      role: 'ADM DA PASTA',
+      status: 'TRABALHANDO',
+      is_pending: false,
+      recruited_by: 'Sistema',
+      joined_date: '2025-01-01',
+      notes: 'Administrador Master do Sistema AZO.',
+      created_at: '2025-01-01T00:00:00.000Z'
+    }
+  ],
+  warnings: [],
+  blacklists: [],
+  promotions: [],
+  activities: [],
+  permissions: {
+    'ADM DA PASTA': {
+      view_members: true,
+      create_members: true,
+      edit_members: true,
+      approve_registrations: true,
+      manage_warnings: true,
+      view_warnings: true,
+      manage_blacklist: true,
+      remove_blacklist: true,
+      promote_demote: true,
+      change_status: true,
+      register_activities: true,
+      view_reports: true,
+      export_data: true,
+      view_logs: true,
+      manage_permissions: true,
+      system_config: true
+    },
+    'AUXILIAR': {
+      view_members: true,
+      create_members: true,
+      edit_members: true,
+      approve_registrations: true,
+      manage_warnings: true,
+      view_warnings: true,
+      manage_blacklist: true,
+      remove_blacklist: false,
+      promote_demote: true,
+      change_status: true,
+      register_activities: true,
+      view_reports: true,
+      export_data: true,
+      view_logs: true,
+      manage_permissions: false,
+      system_config: false
+    },
+    'LÍDER': {
+      view_members: true,
+      create_members: true,
+      edit_members: true,
+      approve_registrations: false,
+      manage_warnings: true,
+      view_warnings: true,
+      manage_blacklist: false,
+      remove_blacklist: false,
+      promote_demote: false,
+      change_status: true,
+      register_activities: true,
+      view_reports: true,
+      export_data: true,
+      view_logs: false,
+      manage_permissions: false,
+      system_config: false
+    },
+    'SUB': {
+      view_members: true,
+      create_members: false,
+      edit_members: false,
+      approve_registrations: false,
+      manage_warnings: false,
+      view_warnings: true,
+      manage_blacklist: false,
+      remove_blacklist: false,
+      promote_demote: false,
+      change_status: false,
+      register_activities: true,
+      view_reports: true,
+      export_data: false,
+      view_logs: false,
+      manage_permissions: false,
+      system_config: false
+    },
+    'AZO': {
+      view_members: true,
+      create_members: false,
+      edit_members: false,
+      approve_registrations: false,
+      manage_warnings: false,
+      view_warnings: false,
+      manage_blacklist: false,
+      remove_blacklist: false,
+      promote_demote: false,
+      change_status: false,
+      register_activities: true,
+      view_reports: false,
+      export_data: false,
+      view_logs: false,
+      manage_permissions: false,
+      system_config: false
+    },
+    'AZO-T': {
+      view_members: false,
+      create_members: false,
+      edit_members: false,
+      approve_registrations: false,
+      manage_warnings: false,
+      view_warnings: false,
+      manage_blacklist: false,
+      remove_blacklist: false,
+      promote_demote: false,
+      change_status: false,
+      register_activities: false,
+      view_reports: false,
+      export_data: false,
+      view_logs: false,
+      manage_permissions: false,
+      system_config: false
+    }
+  },
+  audit_logs: [
+    {
+      id: 'log-1',
+      user_id: 'm-1',
+      user_name: 'Administrador Principal',
+      action: 'SISTEMA_INICIALIZADO',
+      target_type: 'SYSTEM',
+      target_id: 'AZO',
+      details: 'Sistema ANTI ZARALHO OMEGA inicializado com sucesso.',
+      created_at: '2025-01-01T00:00:00.000Z'
+    }
+  ]
+};
+
 export default function App() {
-  // Auth state
+  // ALL REACT HOOKS DECLARED UNCONDITIONALLY AT THE TOP
   const [session, setSession] = useState<{ id: string; email: string; full_name: string; role: string; token: string } | null>(() => {
-    const saved = localStorage.getItem('azo_session');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('azo_session');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
 
-  // Navigation state
   const [activeTab, setActiveTab] = useState<'dashboard' | 'members' | 'requests' | 'warnings' | 'blacklist' | 'hierarchy' | 'activities' | 'logs' | 'reports' | 'permissions' | 'settings'>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Data states
-  const [members, setMembers] = useState<any[]>([]);
-  const [requests, setRequests] = useState<any[]>([]);
-  const [warnings, setWarnings] = useState<any[]>([]);
-  const [blacklist, setBlacklist] = useState<any[]>([]);
-  const [promotions, setPromotions] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
-  const [permissions, setPermissions] = useState<any>({});
-  const [logs, setLogs] = useState<any[]>([]);
+  const [dbData, setDbData] = useState<any>(() => {
+    try {
+      const saved = localStorage.getItem('azo_db');
+      return saved ? JSON.parse(saved) : INITIAL_DB;
+    } catch {
+      return INITIAL_DB;
+    }
+  });
+
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Login / Register Form states
+  // Auth Form states
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
-  // Register form
+  // Register form states
   const [regFullName, setRegFullName] = useState('');
   const [regGtaName, setRegGtaName] = useState('');
   const [regGameId, setRegGameId] = useState('');
@@ -63,7 +213,7 @@ export default function App() {
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [targetMemberForAction, setTargetMemberForAction] = useState<any | null>(null);
 
-  // New item form states
+  // Form inputs for modals
   const [newWarning, setNewWarning] = useState({ member_id: '', type: 'VERBAL', reason: '', description: '', evidence: '', notes: '' });
   const [newBlacklist, setNewBlacklist] = useState({ name: '', game_id: '', discord: '', reason: '', description: '', evidences: '' });
   const [newActivity, setNewActivity] = useState({ member_id: '', category: 'OPERAÇÃO', description: '', notes: '' });
@@ -71,33 +221,46 @@ export default function App() {
   const [promoJustification, setPromoJustification] = useState('');
   const [newMemberForm, setNewMemberForm] = useState({ full_name: '', gta_name: '', game_id: '', email: '', password: '', discord: '', role: 'AZO-T', status: 'TRABALHANDO' });
 
-  // Load all data
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [mRes, rRes, wRes, bRes, prRes, aRes, pRes, lRes] = await Promise.all([
-        fetch('/api/members').then(r => r.json()),
-        fetch('/api/requests').then(r => r.json()),
-        fetch('/api/warnings').then(r => r.json()),
-        fetch('/api/blacklist').then(r => r.json()),
-        fetch('/api/promotions').then(r => r.json()),
-        fetch('/api/activities').then(r => r.json()),
-        fetch('/api/permissions').then(r => r.json()),
-        fetch('/api/logs').then(r => r.json())
-      ]);
+  // Filters
+  const [memberSearch, setMemberSearch] = useState('');
+  const [memberStatusFilter, setMemberStatusFilter] = useState('TODOS');
+  const [memberRoleFilter, setMemberRoleFilter] = useState('TODOS');
 
-      setMembers(mRes);
-      setRequests(rRes);
-      setWarnings(wRes);
-      setBlacklist(bRes);
-      setPromotions(prRes);
-      setActivities(aRes);
-      setPermissions(pRes);
-      setLogs(lRes);
-    } catch (err) {
-      console.error('Error loading data:', err);
+  // Save DB to localStorage
+  const saveDb = (updated: any) => {
+    setDbData(updated);
+    try {
+      localStorage.setItem('azo_db', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Error saving db:', e);
+    }
+  };
+
+  const logAudit = (db: any, userId: string, userName: string, action: string, targetType: string, targetId: string, details: string) => {
+    const newLog = {
+      id: 'log-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+      user_id: userId,
+      user_name: userName,
+      action,
+      target_type: targetType,
+      target_id: targetId,
+      details,
+      created_at: new Date().toISOString()
+    };
+    db.audit_logs.unshift(newLog);
+  };
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const saved = localStorage.getItem('azo_db');
+      if (saved) {
+        setDbData(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error(e);
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 200);
     }
   };
 
@@ -107,60 +270,90 @@ export default function App() {
     }
   }, [session]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  // Handlers
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro ao entrar');
-      setSession(data);
-      localStorage.setItem('azo_session', JSON.stringify(data));
-    } catch (err: any) {
-      setErrorMsg(err.message);
+    const db = { ...dbData };
+    const member = db.members.find((m: any) => m.email.toLowerCase() === loginEmail.toLowerCase());
+
+    if (!member || member.password_hash !== loginPassword) {
+      setErrorMsg('E-mail ou senha incorretos.');
+      return;
     }
+
+    if (member.is_pending) {
+      setErrorMsg('Seu cadastro está pendente de aprovação pela administração.');
+      return;
+    }
+
+    if (member.status === 'DESLIGADO') {
+      setErrorMsg('Esta conta foi desligada da organização.');
+      return;
+    }
+
+    logAudit(db, member.id, member.full_name, 'LOGIN', 'USER', member.id, 'Login realizado com sucesso.');
+    saveDb(db);
+
+    const userSession = {
+      id: member.id,
+      email: member.email,
+      full_name: member.full_name,
+      role: member.role,
+      token: 'token-' + member.id + '-' + Date.now()
+    };
+    setSession(userSession);
+    localStorage.setItem('azo_session', JSON.stringify(userSession));
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          full_name: regFullName,
-          gta_name: regGtaName,
-          game_id: regGameId,
-          email: regEmail,
-          password: regPassword,
-          discord: regDiscord,
-          role_requested: regRoleRequested
-        })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro no cadastro');
-      setSuccessMsg(data.message);
-      if (data.member && !data.member.is_pending) {
-        // First admin auto-login
-        setSession({
-          id: data.member.id,
-          email: data.member.email,
-          full_name: data.member.full_name,
-          role: data.member.role,
-          token: 'token-' + data.member.id
-        });
-        localStorage.setItem('azo_session', JSON.stringify(data.member));
-      } else {
-        setAuthMode('login');
-      }
-    } catch (err: any) {
-      setErrorMsg(err.message);
+    const db = { ...dbData };
+
+    const existing = db.members.find((m: any) => m.email.toLowerCase() === regEmail.toLowerCase() || m.game_id === regGameId);
+    if (existing) {
+      setErrorMsg('E-mail ou ID do jogo já cadastrado no sistema.');
+      return;
+    }
+
+    const isFirst = db.members.length === 0;
+
+    const newMember = {
+      id: 'm-' + Date.now(),
+      full_name: regFullName,
+      gta_name: regGtaName,
+      game_id: regGameId,
+      email: regEmail,
+      password_hash: regPassword,
+      discord: regDiscord,
+      role: isFirst ? 'ADM DA PASTA' : (regRoleRequested || 'AZO-T'),
+      status: isFirst ? 'TRABALHANDO' : 'PENDENTE',
+      is_pending: !isFirst,
+      recruited_by: isFirst ? 'Sistema (Primeiro Admin)' : 'Auto-cadastro',
+      joined_date: new Date().toISOString().split('T')[0],
+      notes: isFirst ? 'Primeiro administrador cadastrado automaticamente.' : 'Solicitação de cadastro pendente.',
+      created_at: new Date().toISOString()
+    };
+
+    db.members.push(newMember);
+    logAudit(db, newMember.id, newMember.full_name, isFirst ? 'PRIMEIRO_ADMIN_CRIADO' : 'SOLICITACAO_CADASTRO', 'MEMBER', newMember.id, `Cadastro realizado para ${regFullName}`);
+    saveDb(db);
+
+    if (isFirst) {
+      const userSession = {
+        id: newMember.id,
+        email: newMember.email,
+        full_name: newMember.full_name,
+        role: newMember.role,
+        token: 'token-' + newMember.id
+      };
+      setSession(userSession);
+      localStorage.setItem('azo_session', JSON.stringify(userSession));
+    } else {
+      setSuccessMsg('Cadastro realizado com sucesso! Aguardando aprovação.');
+      setAuthMode('login');
     }
   };
 
@@ -169,19 +362,50 @@ export default function App() {
     localStorage.removeItem('azo_session');
   };
 
-  // Check permission for current user
   const hasPermission = (permKey: string) => {
     if (!session) return false;
     if (session.role === 'ADM DA PASTA') return true;
-    const rolePerms = permissions[session.role];
+    const rolePerms = dbData.permissions[session.role];
     return rolePerms ? !!rolePerms[permKey] : false;
   };
 
+  // Derived metrics
+  const membersList = dbData.members || [];
+  const warningsList = dbData.warnings || [];
+  const blacklistList = dbData.blacklists || [];
+  const promotionsList = dbData.promotions || [];
+  const activitiesList = dbData.activities || [];
+  const requestsList = membersList.filter((m: any) => m.is_pending);
+  const activeMembersList = membersList.filter((m: any) => !m.is_pending);
+
+  const totalMembers = activeMembersList.length;
+  const workingMembers = activeMembersList.filter((m: any) => m.status === 'TRABALHANDO').length;
+  const inactiveMembers = activeMembersList.filter((m: any) => m.status === 'INATIVO').length;
+  const afastadoMembers = activeMembersList.filter((m: any) => m.status === 'AFASTADO').length;
+  const observationMembers = activeMembersList.filter((m: any) => m.status === 'EM OBSERVAÇÃO').length;
+  const desligadoMembers = activeMembersList.filter((m: any) => m.status === 'DESLIGADO').length;
+  const totalWarnings = warningsList.length;
+  const activeBlacklist = blacklistList.filter((b: any) => b.status === 'ATIVA').length;
+  const pendingCount = requestsList.length;
+
+  const roleChartData = HIERARCHY_ORDER.map(role => ({
+    name: role,
+    quantidade: activeMembersList.filter((m: any) => m.role === role).length
+  }));
+
+  const statusChartData = [
+    { name: 'Trabalhando', value: workingMembers, color: '#16a34a' },
+    { name: 'Inativo', value: inactiveMembers, color: '#ca8a04' },
+    { name: 'Afastado', value: afastadoMembers, color: '#2563eb' },
+    { name: 'Observação', value: observationMembers, color: '#9333ea' },
+    { name: 'Desligado', value: desligadoMembers, color: '#dc2626' }
+  ].filter(d => d.value > 0);
+
+  // RENDER LOGIN / REGISTER SCREEN IF NO SESSION
   if (!session) {
     return (
       <div className="min-h-screen bg-black text-zinc-100 flex items-center justify-center p-4 relative overflow-hidden font-sans">
-        {/* Background ambient glow */}
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-red-950/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-red-950/35 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-red-900/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="w-full max-w-md bg-zinc-900/90 border border-zinc-800 rounded-xl p-8 shadow-2xl backdrop-blur-md relative z-10">
@@ -217,7 +441,7 @@ export default function App() {
                   value={loginEmail}
                   onChange={e => setLoginEmail(e.target.value)}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-600 transition-colors"
-                  placeholder="seu.email@azo.com"
+                  placeholder="adminpastaomega@gmail.com"
                 />
               </div>
               <div>
@@ -239,6 +463,12 @@ export default function App() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+              </div>
+
+              <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-lg text-xs text-zinc-400 space-y-1">
+                <p className="font-semibold text-zinc-300">Acesso Administrador Padrão:</p>
+                <p>E-mail: <code className="text-red-400">adminpastaomega@gmail.com</code></p>
+                <p>Senha: <code className="text-red-400">admin0456</code></p>
               </div>
 
               <button
@@ -342,7 +572,6 @@ export default function App() {
                     <option key={r} value={r}>{r}</option>
                   ))}
                 </select>
-                <p className="text-[10px] text-zinc-500 mt-1">Nota: O primeiro cadastro no sistema torna-se ADM DA PASTA automaticamente.</p>
               </div>
 
               <button
@@ -373,38 +602,7 @@ export default function App() {
     );
   }
 
-  // Filter & Search states for modules
-  const [memberSearch, setMemberSearch] = useState('');
-  const [memberStatusFilter, setMemberStatusFilter] = useState('TODOS');
-  const [memberRoleFilter, setMemberRoleFilter] = useState('TODOS');
-
-  // Dashboard metrics
-  const totalMembers = members.filter(m => !m.is_pending).length;
-  const workingMembers = members.filter(m => !m.is_pending && m.status === 'TRABALHANDO').length;
-  const inactiveMembers = members.filter(m => !m.is_pending && m.status === 'INATIVO').length;
-  const afastadoMembers = members.filter(m => !m.is_pending && m.status === 'AFASTADO').length;
-  const observationMembers = members.filter(m => !m.is_pending && m.status === 'EM OBSERVAÇÃO').length;
-  const desligadoMembers = members.filter(m => !m.is_pending && m.status === 'DESLIGADO').length;
-  const totalWarnings = warnings.length;
-  const activeBlacklist = blacklist.filter(b => b.status === 'ATIVA').length;
-  const pendingCount = requests.length;
-
-  // Chart data
-  const roleChartData = HIERARCHY_ORDER.map(role => ({
-    name: role,
-    quantidade: members.filter(m => !m.is_pending && m.role === role).length
-  }));
-
-  const statusChartData = [
-    { name: 'Trabalhando', value: workingMembers, color: '#16a34a' },
-    { name: 'Inativo', value: inactiveMembers, color: '#ca8a04' },
-    { name: 'Afastado', value: afastadoMembers, color: '#2563eb' },
-    { name: 'Observação', value: observationMembers, color: '#9333ea' },
-    { name: 'Desligado', value: desligadoMembers, color: '#dc2626' }
-  ].filter(d => d.value > 0);
-
-  const COLORS = ['#dc2626', '#b91c1c', '#991b1b', '#7f1d1d', '#581c87', '#3b0764'];
-
+  // MAIN DASHBOARD & MODULES RENDER
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex font-sans antialiased">
       {/* Sidebar Desktop */}
@@ -461,7 +659,6 @@ export default function App() {
           })}
         </nav>
 
-        {/* User Info Footer in Sidebar */}
         <div className="p-4 border-t border-zinc-800 bg-zinc-950/50">
           <div className="flex items-center justify-between mb-3">
             <div className="truncate">
@@ -515,7 +712,7 @@ export default function App() {
             </button>
             <div className="hidden sm:flex items-center gap-2 text-xs text-zinc-400 border-l border-zinc-800 pl-4">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span>Sistema Online (AZO v2.5)</span>
+              <span>AZO Static / Cloud Ready</span>
             </div>
           </div>
         </header>
@@ -570,10 +767,9 @@ export default function App() {
         {/* Viewport Content */}
         <main className="flex-1 overflow-y-auto p-6 bg-zinc-950">
           
-          {/* ==================== 1. DASHBOARD ==================== */}
+          {/* 1. DASHBOARD */}
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
-              {/* Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm">
                   <div className="flex items-center justify-between">
@@ -636,7 +832,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Charts Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm">
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Membros por Cargo Oficial</h3>
@@ -679,11 +874,10 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Recent Activity Feed */}
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Atividade Administrativa Recente</h3>
                 <div className="space-y-3">
-                  {logs.slice(0, 5).map((log: any) => (
+                  {(dbData.audit_logs || []).slice(0, 5).map((log: any) => (
                     <div key={log.id} className="flex items-center justify-between p-3 bg-zinc-950/60 border border-zinc-800/60 rounded-lg text-xs">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-red-950/50 border border-red-900 text-red-500 flex items-center justify-center font-bold">
@@ -704,11 +898,11 @@ export default function App() {
             </div>
           )}
 
-          {/* ==================== 2. MEMBROS ==================== */}
+          {/* 2. MEMBERS */}
           {activeTab === 'members' && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
                   <div className="relative flex-1 sm:w-80">
                     <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
                     <input
@@ -752,7 +946,6 @@ export default function App() {
                 )}
               </div>
 
-              {/* Members Table */}
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
@@ -767,7 +960,7 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800 text-sm">
-                      {members.filter((m: any) => !m.is_pending).filter((m: any) => {
+                      {activeMembersList.filter((m: any) => {
                         const matchSearch = m.full_name.toLowerCase().includes(memberSearch.toLowerCase()) ||
                                             m.game_id.includes(memberSearch) ||
                                             m.discord.toLowerCase().includes(memberSearch.toLowerCase()) ||
@@ -820,18 +1013,18 @@ export default function App() {
             </div>
           )}
 
-          {/* ==================== 3. SOLICITAÇÕES ==================== */}
+          {/* 3. REQUESTS */}
           {activeTab === 'requests' && (
             <div className="space-y-6">
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Solicitações de Cadastro Pendentes</h3>
-                {requests.length === 0 ? (
+                {requestsList.length === 0 ? (
                   <div className="text-center py-12 text-zinc-500">
                     Nenhuma solicitação de cadastro pendente no momento.
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {requests.map((req: any) => (
+                    {requestsList.map((req: any) => (
                       <div key={req.id} className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div>
                           <div className="flex items-center gap-3">
@@ -851,15 +1044,18 @@ export default function App() {
                         {hasPermission('approve_registrations') && (
                           <div className="flex items-center gap-2 w-full md:w-auto">
                             <button
-                              onClick={async () => {
+                              onClick={() => {
                                 const role = prompt('Confirme ou altere o cargo para aprovação:', req.role);
                                 if (!role) return;
-                                const res = await fetch(`/api/requests/${req.id}/approve`, {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ assigned_role: role, admin_id: session.id, admin_name: session.full_name })
-                                });
-                                if (res.ok) loadData();
+                                const db = { ...dbData };
+                                const mem = db.members.find((m: any) => m.id === req.id);
+                                if (mem) {
+                                  mem.is_pending = false;
+                                  mem.status = 'TRABALHANDO';
+                                  mem.role = role;
+                                  logAudit(db, session.id, session.full_name, 'APROVAR_CADASTRO', 'MEMBER', req.id, `Aprovou cadastro de ${mem.full_name} com cargo ${role}`);
+                                  saveDb(db);
+                                }
                               }}
                               className="flex-1 md:flex-none px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
                             >
@@ -867,15 +1063,17 @@ export default function App() {
                               <span>Aprovar</span>
                             </button>
                             <button
-                              onClick={async () => {
+                              onClick={() => {
                                 const reason = prompt('Informe o motivo da recusa:');
                                 if (!reason) return;
-                                const res = await fetch(`/api/requests/${req.id}/reject`, {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ admin_id: session.id, admin_name: session.full_name, reason })
-                                });
-                                if (res.ok) loadData();
+                                const db = { ...dbData };
+                                const idx = db.members.findIndex((m: any) => m.id === req.id);
+                                if (idx !== -1) {
+                                  const mem = db.members[idx];
+                                  db.members.splice(idx, 1);
+                                  logAudit(db, session.id, session.full_name, 'RECUSAR_CADASTRO', 'MEMBER', req.id, `Recusou cadastro de ${mem.full_name}. Motivo: ${reason}`);
+                                  saveDb(db);
+                                }
                               }}
                               className="flex-1 md:flex-none px-4 py-2 bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
                             >
@@ -892,7 +1090,7 @@ export default function App() {
             </div>
           )}
 
-          {/* ==================== 4. ADVERTÊNCIAS ==================== */}
+          {/* 4. WARNINGS */}
           {activeTab === 'warnings' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -922,8 +1120,8 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800 text-sm">
-                      {warnings.map((w: any) => {
-                        const m = members.find((mem: any) => mem.id === w.member_id);
+                      {warningsList.map((w: any) => {
+                        const m = activeMembersList.find((mem: any) => mem.id === w.member_id);
                         return (
                           <tr key={w.id} className="hover:bg-zinc-800/40 transition-colors">
                             <td className="p-4 font-semibold text-white">{m?.full_name || 'Membro Removido'}</td>
@@ -950,7 +1148,7 @@ export default function App() {
             </div>
           )}
 
-          {/* ==================== 5. BLACKLIST ==================== */}
+          {/* 5. BLACKLIST */}
           {activeTab === 'blacklist' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -980,7 +1178,7 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800 text-sm">
-                      {blacklist.map((b: any) => (
+                      {blacklistList.map((b: any) => (
                         <tr key={b.id} className="hover:bg-zinc-800/40 transition-colors">
                           <td className="p-4 font-semibold text-white">{b.name}</td>
                           <td className="p-4">
@@ -1003,15 +1201,17 @@ export default function App() {
                           <td className="p-4 text-right">
                             {b.status === 'ATIVA' && hasPermission('remove_blacklist') && (
                               <button
-                                onClick={async () => {
+                                onClick={() => {
                                   const justification = prompt('Justificativa obrigatória para remover da Blacklist:');
                                   if (!justification) return;
-                                  const res = await fetch(`/api/blacklist/${b.id}/remove`, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ justification, responsible_id: session.id, responsible_name: session.full_name })
-                                  });
-                                  if (res.ok) loadData();
+                                  const db = { ...dbData };
+                                  const entry = db.blacklists.find((x: any) => x.id === b.id);
+                                  if (entry) {
+                                    entry.status = 'REMOVIDA';
+                                    entry.removal_justification = justification;
+                                    logAudit(db, session.id, session.full_name, 'REMOVER_BLACKLIST', 'BLACKLIST', b.id, `Removeu ${entry.name} da Blacklist. Justificativa: ${justification}`);
+                                    saveDb(db);
+                                  }
                                 }}
                                 className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-xs font-medium transition-colors"
                               >
@@ -1028,7 +1228,7 @@ export default function App() {
             </div>
           )}
 
-          {/* ==================== 6. HIERARQUIA ==================== */}
+          {/* 6. HIERARCHY */}
           {activeTab === 'hierarchy' && (
             <div className="space-y-6">
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm">
@@ -1041,7 +1241,7 @@ export default function App() {
                       <span className="text-xs font-mono text-red-500 font-bold">0{idx + 1}</span>
                       <h4 className="font-bold text-white text-sm mt-1">{role}</h4>
                       <p className="text-xs text-zinc-400 mt-2">
-                        {members.filter((m: any) => !m.is_pending && m.role === role).length} membros
+                        {activeMembersList.filter((m: any) => m.role === role).length} membros
                       </p>
                     </div>
                   ))}
@@ -1049,8 +1249,8 @@ export default function App() {
 
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Histórico de Promoções e Rebaixamentos</h3>
                 <div className="space-y-3">
-                  {promotions.map((pr: any) => {
-                    const m = members.find((mem: any) => mem.id === pr.member_id);
+                  {promotionsList.map((pr: any) => {
+                    const m = activeMembersList.find((mem: any) => mem.id === pr.member_id);
                     return (
                       <div key={pr.id} className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg flex items-center justify-between text-xs">
                         <div>
@@ -1071,7 +1271,7 @@ export default function App() {
             </div>
           )}
 
-          {/* ==================== 7. ATIVIDADES ==================== */}
+          {/* 7. ACTIVITIES */}
           {activeTab === 'activities' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -1098,8 +1298,8 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800 text-sm">
-                      {activities.map((act: any) => {
-                        const m = members.find((mem: any) => mem.id === act.member_id);
+                      {activitiesList.map((act: any) => {
+                        const m = activeMembersList.find((mem: any) => mem.id === act.member_id);
                         return (
                           <tr key={act.id} className="hover:bg-zinc-800/40 transition-colors">
                             <td className="p-4 font-semibold text-white">{m?.full_name || 'Membro'}</td>
@@ -1124,13 +1324,13 @@ export default function App() {
             </div>
           )}
 
-          {/* ==================== 8. LOGS ==================== */}
+          {/* 8. LOGS */}
           {activeTab === 'logs' && (
             <div className="space-y-6">
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Logs de Auditoria e Segurança</h3>
                 <div className="space-y-3">
-                  {logs.map((log: any) => (
+                  {(dbData.audit_logs || []).map((log: any) => (
                     <div key={log.id} className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg flex items-center justify-between text-xs">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 text-red-500 flex items-center justify-center font-bold">
@@ -1149,7 +1349,7 @@ export default function App() {
             </div>
           )}
 
-          {/* ==================== 9. RELATÓRIOS ==================== */}
+          {/* 9. REPORTS */}
           {activeTab === 'reports' && (
             <div className="space-y-6">
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm space-y-6">
@@ -1168,7 +1368,7 @@ export default function App() {
                     </button>
                     <button
                       onClick={() => {
-                        const csvContent = 'data:text/csv;charset=utf-8,' + members.map(m => Object.values(m).join(',')).join('\n');
+                        const csvContent = 'data:text/csv;charset=utf-8,' + activeMembersList.map((m: any) => Object.values(m).join(',')).join('\n');
                         const encodedUri = encodeURI(csvContent);
                         const link = document.createElement('a');
                         link.setAttribute('href', encodedUri);
@@ -1206,7 +1406,7 @@ export default function App() {
             </div>
           )}
 
-          {/* ==================== 10. PERMISSÕES ==================== */}
+          {/* 10. PERMISSIONS */}
           {activeTab === 'permissions' && (
             <div className="space-y-6">
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm">
@@ -1245,7 +1445,7 @@ export default function App() {
                         <tr key={perm.key} className="hover:bg-zinc-800/40 transition-colors">
                           <td className="p-4 font-medium text-white">{perm.label}</td>
                           {HIERARCHY_ORDER.map(role => {
-                            const isAllowed = permissions[role]?.[perm.key];
+                            const isAllowed = dbData.permissions[role]?.[perm.key];
                             const isEditable = session.role === 'ADM DA PASTA' && role !== 'ADM DA PASTA';
                             return (
                               <td key={role} className="p-4 text-center">
@@ -1253,14 +1453,11 @@ export default function App() {
                                   type="checkbox"
                                   checked={!!isAllowed}
                                   disabled={!isEditable}
-                                  onChange={async e => {
-                                    const updatedRolePerms = { ...permissions[role], [perm.key]: e.target.checked };
-                                    const res = await fetch('/api/permissions', {
-                                      method: 'PUT',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ role, permissions: updatedRolePerms, admin_id: session.id, admin_name: session.full_name })
-                                    });
-                                    if (res.ok) loadData();
+                                  onChange={e => {
+                                    const db = { ...dbData };
+                                    db.permissions[role][perm.key] = e.target.checked;
+                                    logAudit(db, session.id, session.full_name, 'ATUALIZAR_PERMISSOES', 'PERMISSIONS', role, `Atualizou matriz de permissões para ${role}`);
+                                    saveDb(db);
                                   }}
                                   className="w-4 h-4 rounded bg-zinc-950 border-zinc-800 text-red-600 focus:ring-0 cursor-pointer disabled:opacity-50"
                                 />
@@ -1276,28 +1473,24 @@ export default function App() {
             </div>
           )}
 
-          {/* ==================== 11. CONFIGURAÇÕES ==================== */}
+          {/* 11. SETTINGS */}
           {activeTab === 'settings' && (
             <div className="space-y-6">
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm space-y-6">
                 <div>
-                  <h3 className="text-lg font-bold text-white">Configurações & Integração Supabase</h3>
-                  <p className="text-xs text-zinc-400 mt-1">Informações do sistema AZO e instruções de conexão com o banco de dados PostgreSQL / Supabase.</p>
+                  <h3 className="text-lg font-bold text-white">Configurações & GitHub Pages / Cloud</h3>
+                  <p className="text-xs text-zinc-400 mt-1">Informações do sistema AZO e arquitetura de armazenamento autônomo.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-zinc-800">
                   <div className="bg-zinc-950 p-5 rounded-xl border border-zinc-800 space-y-3">
                     <h4 className="font-bold text-white text-sm flex items-center gap-2">
                       <Database className="w-4 h-4 text-red-500" />
-                      <span>Status do Banco de Dados</span>
+                      <span>Armazenamento Local & Sincronização</span>
                     </h4>
                     <p className="text-xs text-zinc-400">
-                      O sistema está conectado ao armazenamento persistente em tempo real. Para integrar o Supabase oficialmente, configure as variáveis no arquivo <code className="text-red-400 font-mono">.env</code>:
+                      O sistema opera nativamente com persistência local no navegador (<code className="text-red-400 font-mono">localStorage</code>), garantindo 100% de disponibilidade, velocidade e ausência de erros de servidor em hospedagem estática como o GitHub Pages.
                     </p>
-                    <pre className="bg-zinc-900 p-3 rounded-lg text-xs font-mono text-zinc-300 overflow-x-auto">
-                      VITE_SUPABASE_URL="https://seu-projeto.supabase.co"
-                      VITE_SUPABASE_ANON_KEY="sua-chave-anon"
-                    </pre>
                   </div>
 
                   <div className="bg-zinc-950 p-5 rounded-xl border border-zinc-800 space-y-3">
@@ -1335,26 +1528,27 @@ export default function App() {
               </button>
             </div>
 
-            <form onSubmit={async e => {
+            <form onSubmit={e => {
               e.preventDefault();
-              try {
-                const res = await fetch('/api/members', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    ...newMemberForm,
-                    admin_id: session.id,
-                    admin_name: session.full_name
-                  })
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Erro ao cadastrar membro');
-                setIsAddMemberOpen(false);
-                setNewMemberForm({ full_name: '', gta_name: '', game_id: '', email: '', password: '', discord: '', role: 'AZO-T', status: 'TRABALHANDO' });
-                loadData();
-              } catch (err: any) {
-                alert(err.message);
+              const db = { ...dbData };
+              const existing = db.members.find((m: any) => m.email.toLowerCase() === newMemberForm.email.toLowerCase() || m.game_id === newMemberForm.game_id);
+              if (existing) {
+                alert('E-mail ou ID do jogo já cadastrado.');
+                return;
               }
+              const newMem = {
+                id: 'm-' + Date.now(),
+                ...newMemberForm,
+                is_pending: false,
+                recruited_by: session.full_name,
+                joined_date: new Date().toISOString().split('T')[0],
+                created_at: new Date().toISOString()
+              };
+              db.members.push(newMem);
+              logAudit(db, session.id, session.full_name, 'CADASTRAR_MEMBRO', 'MEMBER', newMem.id, `Cadastrou o membro ${newMem.full_name} (${newMem.role})`);
+              saveDb(db);
+              setIsAddMemberOpen(false);
+              setNewMemberForm({ full_name: '', gta_name: '', game_id: '', email: '', password: '', discord: '', role: 'AZO-T', status: 'TRABALHANDO' });
             }} className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-zinc-400 uppercase mb-1">Nome Completo</label>
@@ -1475,269 +1669,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Add Activity Modal */}
-      {isAddActivityOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-white text-base">Registrar Atividade</h3>
-              <button onClick={() => setIsAddActivityOpen(false)} className="text-zinc-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={async e => {
-              e.preventDefault();
-              try {
-                const res = await fetch('/api/activities', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    ...newActivity,
-                    responsible_id: session.id,
-                    responsible_name: session.full_name
-                  })
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Erro ao registrar atividade');
-                setIsAddActivityOpen(false);
-                setNewActivity({ member_id: '', category: 'OPERAÇÃO', description: '', notes: '' });
-                loadData();
-              } catch (err: any) {
-                alert(err.message);
-              }
-            }} className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 uppercase mb-1">Membro</label>
-                <select
-                  required
-                  value={newActivity.member_id}
-                  onChange={e => setNewActivity({ ...newActivity, member_id: e.target.value })}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600"
-                >
-                  <option value="">Selecione o membro...</option>
-                  {members.filter((m: any) => !m.is_pending).map((m: any) => (
-                    <option key={m.id} value={m.id}>{m.full_name} (ID: {m.game_id})</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 uppercase mb-1">Categoria</label>
-                <select
-                  value={newActivity.category}
-                  onChange={e => setNewActivity({ ...newActivity, category: e.target.value })}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600"
-                >
-                  <option value="OPERAÇÃO">OPERAÇÃO</option>
-                  <option value="SERVIÇO">SERVIÇO</option>
-                  <option value="AUSÊNCIA">AUSÊNCIA</option>
-                  <option value="ADMINISTRATIVA">ADMINISTRATIVA</option>
-                  <option value="OUTROS">OUTROS</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 uppercase mb-1">Descrição</label>
-                <input
-                  type="text"
-                  required
-                  value={newActivity.description}
-                  onChange={e => setNewActivity({ ...newActivity, description: e.target.value })}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600"
-                  placeholder="Descrição da atividade..."
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 uppercase mb-1">Observações (Opcional)</label>
-                <textarea
-                  rows={2}
-                  value={newActivity.notes}
-                  onChange={e => setNewActivity({ ...newActivity, notes: e.target.value })}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600"
-                  placeholder="Notas adicionais..."
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsAddActivityOpen(false)}
-                  className="px-4 py-2 bg-zinc-800 text-white rounded-lg text-xs font-semibold hover:bg-zinc-700"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-red-700 text-white rounded-lg text-xs font-semibold hover:bg-red-600 shadow-lg shadow-red-950/50"
-                >
-                  Registrar Atividade
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Member Dossier Modal */}
-      {selectedMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-            <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/50">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-red-950 border border-red-800 text-red-500 flex items-center justify-center font-bold text-lg">
-                  {selectedMember.full_name[0]}
-                </div>
-                <div>
-                  <h3 className="font-bold text-white text-base">{selectedMember.full_name}</h3>
-                  <p className="text-xs text-red-400 font-bold uppercase">{selectedMember.role} · ID: {selectedMember.game_id}</p>
-                </div>
-              </div>
-              <button onClick={() => setSelectedMember(null)} className="text-zinc-400 hover:text-white p-2">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Dossier Tabs */}
-            <div className="flex border-b border-zinc-800 bg-zinc-950/30 px-6 overflow-x-auto">
-              {[
-                { id: 'general', label: 'Geral' },
-                { id: 'warnings', label: 'Advertências' },
-                { id: 'promotions', label: 'Hierarquia' },
-                { id: 'activities', label: 'Atividades' },
-                { id: 'notes', label: 'Observações' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setDossierTab(tab.id as any)}
-                  className={`px-4 py-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
-                    dossierTab === tab.id
-                      ? 'border-red-600 text-white'
-                      : 'border-transparent text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="p-6 overflow-y-auto flex-1 space-y-4">
-              {dossierTab === 'general' && (
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
-                    <span className="text-xs text-zinc-500 uppercase">Nome no GTA RP</span>
-                    <p className="font-semibold text-white mt-1">{selectedMember.gta_name}</p>
-                  </div>
-                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
-                    <span className="text-xs text-zinc-500 uppercase">E-mail</span>
-                    <p className="font-semibold text-white mt-1">{selectedMember.email}</p>
-                  </div>
-                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
-                    <span className="text-xs text-zinc-500 uppercase">Discord</span>
-                    <p className="font-semibold text-white mt-1 font-mono">{selectedMember.discord}</p>
-                  </div>
-                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
-                    <span className="text-xs text-zinc-500 uppercase">Status Atual</span>
-                    <p className="font-semibold text-white mt-1">{selectedMember.status}</p>
-                  </div>
-                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
-                    <span className="text-xs text-zinc-500 uppercase">Recrutado por</span>
-                    <p className="font-semibold text-white mt-1">{selectedMember.recruited_by}</p>
-                  </div>
-                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
-                    <span className="text-xs text-zinc-500 uppercase">Data de Entrada</span>
-                    <p className="font-semibold text-white mt-1 tabular-nums">{selectedMember.joined_date}</p>
-                  </div>
-                </div>
-              )}
-
-              {dossierTab === 'warnings' && (
-                <div className="space-y-3">
-                  {warnings.filter((w: any) => w.member_id === selectedMember.id).length === 0 ? (
-                    <p className="text-xs text-zinc-500 text-center py-8">Nenhuma advertência registrada para este membro.</p>
-                  ) : (
-                    warnings.filter((w: any) => w.member_id === selectedMember.id).map((w: any) => (
-                      <div key={w.id} className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg text-xs space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-red-500">{w.type} — {w.reason}</span>
-                          <span className="text-zinc-500 tabular-nums">{new Date(w.date).toLocaleDateString('pt-BR')}</span>
-                        </div>
-                        <p className="text-zinc-300">{w.description}</p>
-                        <p className="text-zinc-500">Responsável: {w.admin_name}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {dossierTab === 'promotions' && (
-                <div className="space-y-3">
-                  {promotions.filter((pr: any) => pr.member_id === selectedMember.id).length === 0 ? (
-                    <p className="text-xs text-zinc-500 text-center py-8">Nenhum registro de alteração hierárquica.</p>
-                  ) : (
-                    promotions.filter((pr: any) => pr.member_id === selectedMember.id).map((pr: any) => (
-                      <div key={pr.id} className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg text-xs space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-white">{pr.type}: {pr.old_role} → {pr.new_role}</span>
-                          <span className="text-zinc-500 tabular-nums">{new Date(pr.date).toLocaleDateString('pt-BR')}</span>
-                        </div>
-                        <p className="text-zinc-300">Justificativa: {pr.justification}</p>
-                        <p className="text-zinc-500">Responsável: {pr.responsible_name}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {dossierTab === 'activities' && (
-                <div className="space-y-3">
-                  {activities.filter((act: any) => act.member_id === selectedMember.id).length === 0 ? (
-                    <p className="text-xs text-zinc-500 text-center py-8">Nenhuma atividade registrada.</p>
-                  ) : (
-                    activities.filter((act: any) => act.member_id === selectedMember.id).map((act: any) => (
-                      <div key={act.id} className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg text-xs space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-white">[{act.category}] {act.description}</span>
-                          <span className="text-zinc-500 tabular-nums">{new Date(act.date).toLocaleDateString('pt-BR')}</span>
-                        </div>
-                        {act.notes && <p className="text-zinc-400">{act.notes}</p>}
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {dossierTab === 'notes' && (
-                <div className="space-y-3">
-                  <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg text-xs">
-                    <span className="text-zinc-500 uppercase block mb-1">Observações Internas</span>
-                    <p className="text-white">{selectedMember.notes || 'Nenhuma observação registrada.'}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="p-4 border-t border-zinc-800 bg-zinc-950/50 flex items-center justify-between">
-              {hasPermission('promote_demote') && (
-                <button
-                  onClick={() => {
-                    setTargetMemberForAction(selectedMember);
-                    setIsPromoModalOpen(true);
-                  }}
-                  className="px-4 py-2 bg-red-950 border border-red-800 text-red-300 hover:bg-red-900 rounded-lg text-xs font-semibold transition-colors"
-                >
-                  Promover / Rebaixar Cargo
-                </button>
-              )}
-              <button
-                onClick={() => setSelectedMember(null)}
-                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-xs font-semibold transition-colors ml-auto"
-              >
-                Fechar Ficha
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Add Warning Modal */}
       {isAddWarningOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -1749,21 +1680,23 @@ export default function App() {
               </button>
             </div>
 
-            <form onSubmit={async e => {
+            <form onSubmit={e => {
               e.preventDefault();
-              const res = await fetch('/api/warnings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  ...newWarning,
-                  admin_id: session.id,
-                  admin_name: session.full_name
-                })
-              });
-              if (res.ok) {
-                setIsAddWarningOpen(false);
-                loadData();
-              }
+              const db = { ...dbData };
+              const mem = activeMembersList.find((m: any) => m.id === newWarning.member_id);
+              if (!mem) return;
+              const wObj = {
+                id: 'w-' + Date.now(),
+                ...newWarning,
+                admin_id: session.id,
+                admin_name: session.full_name,
+                date: new Date().toISOString()
+              };
+              db.warnings.push(wObj);
+              logAudit(db, session.id, session.full_name, 'REGISTRAR_ADVERTENCIA', 'WARNING', wObj.id, `Registrou advertência (${wObj.type}) para ${mem.full_name}. Motivo: ${wObj.reason}`);
+              saveDb(db);
+              setIsAddWarningOpen(false);
+              setNewWarning({ member_id: '', type: 'VERBAL', reason: '', description: '', evidence: '', notes: '' });
             }} className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-zinc-400 uppercase mb-1">Membro</label>
@@ -1774,7 +1707,7 @@ export default function App() {
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600"
                 >
                   <option value="">Selecione o membro...</option>
-                  {members.filter((m: any) => !m.is_pending).map((m: any) => (
+                  {activeMembersList.map((m: any) => (
                     <option key={m.id} value={m.id}>{m.full_name} (ID: {m.game_id})</option>
                   ))}
                 </select>
@@ -1855,21 +1788,23 @@ export default function App() {
               </button>
             </div>
 
-            <form onSubmit={async e => {
+            <form onSubmit={e => {
               e.preventDefault();
-              const res = await fetch('/api/blacklist', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  ...newBlacklist,
-                  responsible_id: session.id,
-                  responsible_name: session.full_name
-                })
-              });
-              if (res.ok) {
-                setIsAddBlacklistOpen(false);
-                loadData();
-              }
+              const db = { ...dbData };
+              const blObj = {
+                id: 'bl-' + Date.now(),
+                ...newBlacklist,
+                responsible_id: session.id,
+                responsible_name: session.full_name,
+                date: new Date().toISOString(),
+                status: 'ATIVA',
+                removal_justification: ''
+              };
+              db.blacklists.push(blObj);
+              logAudit(db, session.id, session.full_name, 'ADICIONAR_BLACKLIST', 'BLACKLIST', blObj.id, `Adicionou ${blObj.name} (ID: ${blObj.game_id}) à Blacklist.`);
+              saveDb(db);
+              setIsAddBlacklistOpen(false);
+              setNewBlacklist({ name: '', game_id: '', discord: '', reason: '', description: '', evidences: '' });
             }} className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-zinc-400 uppercase mb-1">Nome Completo</label>
@@ -1959,7 +1894,104 @@ export default function App() {
         </div>
       )}
 
-      {/* Promotion / Demotion Modal */}
+      {/* Add Activity Modal */}
+      {isAddActivityOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-white text-base">Registrar Atividade</h3>
+              <button onClick={() => setIsAddActivityOpen(false)} className="text-zinc-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={e => {
+              e.preventDefault();
+              const db = { ...dbData };
+              const actObj = {
+                id: 'act-' + Date.now(),
+                ...newActivity,
+                responsible_id: session.id,
+                responsible_name: session.full_name,
+                date: new Date().toISOString()
+              };
+              db.activities.push(actObj);
+              logAudit(db, session.id, session.full_name, 'REGISTRAR_ATIVIDADE', 'ACTIVITY', actObj.id, `Registrou atividade (${actObj.category}) para o membro.`);
+              saveDb(db);
+              setIsAddActivityOpen(false);
+              setNewActivity({ member_id: '', category: 'OPERAÇÃO', description: '', notes: '' });
+            }} className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-zinc-400 uppercase mb-1">Membro</label>
+                <select
+                  required
+                  value={newActivity.member_id}
+                  onChange={e => setNewActivity({ ...newActivity, member_id: e.target.value })}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600"
+                >
+                  <option value="">Selecione o membro...</option>
+                  {activeMembersList.map((m: any) => (
+                    <option key={m.id} value={m.id}>{m.full_name} (ID: {m.game_id})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-400 uppercase mb-1">Categoria</label>
+                <select
+                  value={newActivity.category}
+                  onChange={e => setNewActivity({ ...newActivity, category: e.target.value })}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600"
+                >
+                  <option value="OPERAÇÃO">OPERAÇÃO</option>
+                  <option value="SERVIÇO">SERVIÇO</option>
+                  <option value="AUSÊNCIA">AUSÊNCIA</option>
+                  <option value="ADMINISTRATIVA">ADMINISTRATIVA</option>
+                  <option value="OUTROS">OUTROS</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-400 uppercase mb-1">Descrição</label>
+                <input
+                  type="text"
+                  required
+                  value={newActivity.description}
+                  onChange={e => setNewActivity({ ...newActivity, description: e.target.value })}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600"
+                  placeholder="Descrição da atividade..."
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-400 uppercase mb-1">Observações (Opcional)</label>
+                <textarea
+                  rows={2}
+                  value={newActivity.notes}
+                  onChange={e => setNewActivity({ ...newActivity, notes: e.target.value })}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600"
+                  placeholder="Notas adicionais..."
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsAddActivityOpen(false)}
+                  className="px-4 py-2 bg-zinc-800 text-white rounded-lg text-xs font-semibold hover:bg-zinc-700"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-red-700 text-white rounded-lg text-xs font-semibold hover:bg-red-600 shadow-lg shadow-red-950/50"
+                >
+                  Registrar Atividade
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Promotion Modal */}
       {isPromoModalOpen && targetMemberForAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md p-6 space-y-4 shadow-2xl">
@@ -1974,24 +2006,36 @@ export default function App() {
               Membro: <strong className="text-white">{targetMemberForAction.full_name}</strong> (Cargo atual: <span className="text-red-400 font-bold">{targetMemberForAction.role}</span>)
             </p>
 
-            <form onSubmit={async e => {
+            <form onSubmit={e => {
               e.preventDefault();
-              const res = await fetch('/api/promotions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  member_id: targetMemberForAction.id,
-                  new_role: newPromoRole,
-                  justification: promoJustification,
-                  responsible_id: session.id,
-                  responsible_name: session.full_name
-                })
-              });
-              if (res.ok) {
-                setIsPromoModalOpen(false);
-                setSelectedMember(null);
-                loadData();
-              }
+              const db = { ...dbData };
+              const mem = db.members.find((m: any) => m.id === targetMemberForAction.id);
+              if (!mem) return;
+
+              const old_role = mem.role;
+              const oldIndex = HIERARCHY_ORDER.indexOf(old_role);
+              const newIndex = HIERARCHY_ORDER.indexOf(newPromoRole);
+              let type = 'ALTERAÇÃO';
+              if (newIndex < oldIndex) type = 'PROMOÇÃO';
+              else if (newIndex > oldIndex) type = 'REBAIXAMENTO';
+
+              mem.role = newPromoRole;
+              const promoObj = {
+                id: 'pr-' + Date.now(),
+                member_id: mem.id,
+                old_role,
+                new_role: newPromoRole,
+                type,
+                justification: promoJustification,
+                responsible_id: session.id,
+                responsible_name: session.full_name,
+                date: new Date().toISOString()
+              };
+              db.promotions.push(promoObj);
+              logAudit(db, session.id, session.full_name, type, 'MEMBER', mem.id, `Alterou cargo de ${mem.full_name} de ${old_role} para ${newPromoRole}. Motivo: ${promoJustification}`);
+              saveDb(db);
+              setIsPromoModalOpen(false);
+              setSelectedMember(null);
             }} className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-zinc-400 uppercase mb-1">Novo Cargo</label>
@@ -2033,6 +2077,166 @@ export default function App() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Member Dossier Modal */}
+      {selectedMember && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/50">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-red-950 border border-red-800 text-red-500 flex items-center justify-center font-bold text-lg">
+                  {selectedMember.full_name[0]}
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-base">{selectedMember.full_name}</h3>
+                  <p className="text-xs text-red-400 font-bold uppercase">{selectedMember.role} · ID: {selectedMember.game_id}</p>
+                </div>
+              </div>
+              <button onClick={() => setSelectedMember(null)} className="text-zinc-400 hover:text-white p-2">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex border-b border-zinc-800 bg-zinc-950/30 px-6 overflow-x-auto">
+              {[
+                { id: 'general', label: 'Geral' },
+                { id: 'warnings', label: 'Advertências' },
+                { id: 'promotions', label: 'Hierarquia' },
+                { id: 'activities', label: 'Atividades' },
+                { id: 'notes', label: 'Observações' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setDossierTab(tab.id as any)}
+                  className={`px-4 py-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                    dossierTab === tab.id
+                      ? 'border-red-600 text-white'
+                      : 'border-transparent text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              {dossierTab === 'general' && (
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                    <span className="text-xs text-zinc-500 uppercase">Nome no GTA RP</span>
+                    <p className="font-semibold text-white mt-1">{selectedMember.gta_name}</p>
+                  </div>
+                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                    <span className="text-xs text-zinc-500 uppercase">E-mail</span>
+                    <p className="font-semibold text-white mt-1">{selectedMember.email}</p>
+                  </div>
+                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                    <span className="text-xs text-zinc-500 uppercase">Discord</span>
+                    <p className="font-semibold text-white mt-1 font-mono">{selectedMember.discord}</p>
+                  </div>
+                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                    <span className="text-xs text-zinc-500 uppercase">Status Atual</span>
+                    <p className="font-semibold text-white mt-1">{selectedMember.status}</p>
+                  </div>
+                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                    <span className="text-xs text-zinc-500 uppercase">Recrutado por</span>
+                    <p className="font-semibold text-white mt-1">{selectedMember.recruited_by}</p>
+                  </div>
+                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                    <span className="text-xs text-zinc-500 uppercase">Data de Entrada</span>
+                    <p className="font-semibold text-white mt-1 tabular-nums">{selectedMember.joined_date}</p>
+                  </div>
+                </div>
+              )}
+
+              {dossierTab === 'warnings' && (
+                <div className="space-y-3">
+                  {warningsList.filter((w: any) => w.member_id === selectedMember.id).length === 0 ? (
+                    <p className="text-xs text-zinc-500 text-center py-8">Nenhuma advertência registrada para este membro.</p>
+                  ) : (
+                    warningsList.filter((w: any) => w.member_id === selectedMember.id).map((w: any) => (
+                      <div key={w.id} className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg text-xs space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-red-500">{w.type} — {w.reason}</span>
+                          <span className="text-zinc-500 tabular-nums">{new Date(w.date).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                        <p className="text-zinc-300">{w.description}</p>
+                        <p className="text-zinc-500">Responsável: {w.admin_name}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {dossierTab === 'promotions' && (
+                <div className="space-y-3">
+                  {promotionsList.filter((pr: any) => pr.member_id === selectedMember.id).length === 0 ? (
+                    <p className="text-xs text-zinc-500 text-center py-8">Nenhum registro de alteração hierárquica.</p>
+                  ) : (
+                    promotionsList.filter((pr: any) => pr.member_id === selectedMember.id).map((pr: any) => (
+                      <div key={pr.id} className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg text-xs space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-white">{pr.type}: {pr.old_role} → {pr.new_role}</span>
+                          <span className="text-zinc-500 tabular-nums">{new Date(pr.date).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                        <p className="text-zinc-300">Justificativa: {pr.justification}</p>
+                        <p className="text-zinc-500">Responsável: {pr.responsible_name}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {dossierTab === 'activities' && (
+                <div className="space-y-3">
+                  {activitiesList.filter((act: any) => act.member_id === selectedMember.id).length === 0 ? (
+                    <p className="text-xs text-zinc-500 text-center py-8">Nenhuma atividade registrada.</p>
+                  ) : (
+                    activitiesList.filter((act: any) => act.member_id === selectedMember.id).map((act: any) => (
+                      <div key={act.id} className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg text-xs space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-white">[{act.category}] {act.description}</span>
+                          <span className="text-zinc-500 tabular-nums">{new Date(act.date).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                        {act.notes && <p className="text-zinc-400">{act.notes}</p>}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {dossierTab === 'notes' && (
+                <div className="space-y-3">
+                  <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg text-xs">
+                    <span className="text-zinc-500 uppercase block mb-1">Observações Internas</span>
+                    <p className="text-white">{selectedMember.notes || 'Nenhuma observação registrada.'}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-zinc-800 bg-zinc-950/50 flex items-center justify-between">
+              {hasPermission('promote_demote') && (
+                <button
+                  onClick={() => {
+                    setTargetMemberForAction(selectedMember);
+                    setIsPromoModalOpen(true);
+                  }}
+                  className="px-4 py-2 bg-red-950 border border-red-800 text-red-300 hover:bg-red-900 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  Promover / Rebaixar Cargo
+                </button>
+              )}
+              <button
+                onClick={() => setSelectedMember(null)}
+                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-xs font-semibold transition-colors ml-auto"
+              >
+                Fechar Ficha
+              </button>
+            </div>
           </div>
         </div>
       )}

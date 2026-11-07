@@ -3,8 +3,10 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 
-export default defineConfig(() => {
+export default defineConfig(({ command, mode }) => {
+  const isProd = mode === 'production' || process.env.NODE_ENV === 'production';
   return {
+    base: isProd ? '/azomega/' : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
